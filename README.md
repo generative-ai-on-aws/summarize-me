@@ -6,6 +6,8 @@ SummarizeMe is an AI-powered app for transcribing meeting recordings, generating
 
 This project utilizes Amazon Transcribe for speech-to-text conversion, Amazon Bedrock to summarize meeting transcriptions, and HeyGen for video creation.
 
+Read the full post on [community.aws](https://community.aws/content/2lrAIhZLr6KVb4rGMKqCEarqXbX/summarizeme-your-meeting-tl-dr-app)
+
 ## 🎯 Features
 
 - Transcribe audio/video content using Amazon Transcribe
