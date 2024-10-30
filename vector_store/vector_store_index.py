@@ -62,7 +62,7 @@ def file_to_base64(path):
 def save_video_in_vector_store(video_filename):
 # def save_video_in_vector_store(video_filename, transcript):
     """
-    Save a video file to the Weaviate vector store with its metadata and transcript.
+    Save a video file to the Weaviate vector store with its metadata.
 
     Args:
         video_filename (str): Path to the video file to store
@@ -180,6 +180,7 @@ def get_related_videos(index, query):
             limit=5,
         )
 
-        # Print results with distance and similarity scores
+        # Print results with distance metrics
         for obj in response.objects:
-            print(f"Path: {obj.properties['path']}, Distance: {obj.metadata.distance:.4f}, Similarity: {1 - obj.metadata.distance:.4f}")
+            print(f"Path: {obj.properties['path']}, "\
+                  f"Distance: {obj.metadata.distance:.4f} ")
