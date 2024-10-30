@@ -5,6 +5,9 @@ from transcription.transcribe import transcribe_meeting
 from bedrock.claude_model import summarize_meeting
 from utils.file_utils import save_to_file
 from video.create_heygen_video import create_heygen_video
+from video.create_heygen_video import wait_for_heygen_video_completion
+from vector_store.vector_store_index import save_video_in_vector_store
+from vector_store.vector_store_index import get_related_videos
 
 def main():
     """
@@ -27,7 +30,7 @@ def main():
     load_dotenv()
     try:
         # Get input file path and validate
-        input_file = input("Enter the path to the input file: ")
+        input_file = input("\n\nEnter the path to the input file: ")
         if not os.path.exists(input_file):
             raise FileNotFoundError(f"Input file not found: {input_file}")
         # Check for supported file types for Amazon Transcribe
@@ -35,7 +38,7 @@ def main():
             raise ValueError("Input file type not supported. Try an .mp3 or .mp4 file.")
                 
         # Transcribe video using Amazon Transcribe
-        print("==== (1) Transcribing input file...")
+        print("\n\n==== (1) Transcribing input file...")
         transcription = transcribe_meeting(input_file)
         if not transcription:
             print("Warning: Transcription is empty.")
@@ -46,7 +49,7 @@ def main():
         print(f"Transcription saved to {transcription_file}")
         
         # Summarize transcription using Amazon Bedrock
-        print("==== (2) Summarizing meeting...")
+        print("\n\n==== (2) Summarizing meeting...")
         try:
             key_points, action_items = summarize_meeting(transcription)
             if not key_points and not action_items:
@@ -63,22 +66,43 @@ def main():
             raise
         
         # Create video using HeyGen
-        print("==== (3) Creating video...")
+        print("\n\n==== (3) Creating video...")
         try:
             # Create first part with key points discussed
             meeting_name = os.path.splitext(os.path.basename(input_file))[0]
             title1 = f"{meeting_name} - Key Points"
             bullet_point_list1 = key_points.splitlines()
             speaker_script_paragraph_list1 = f"Here are the key points discussed in the meeting.\n\n{key_points}"[:800]
+
             # Create second part with action items
             title2 = f"{meeting_name} - Action Items"
             bullet_point_list2 = action_items.splitlines()
             speaker_script_paragraph_list2 = f"Here are the top 5 action items from the meeting:\n{action_items}"[:800]
-            # Create video
-            create_heygen_video(meeting_name, title1, bullet_point_list1, speaker_script_paragraph_list1, title2, bullet_point_list2, speaker_script_paragraph_list2)
+
+            # Create video            
+            video_id = create_heygen_video(meeting_name, title1, bullet_point_list1, speaker_script_paragraph_list1, title2, bullet_point_list2, speaker_script_paragraph_list2)
+
+            # Wait for video processing to complete and save as a given filename
+            video_filename = f"example/{meeting_name}_video_summary.mp4"
+            wait_for_heygen_video_completion(video_id, video_filename)
         except Exception as e:
             print(f"Error during video creation: {str(e)}")
             raise
+
+        try:
+            # Store video and transcript in vector store 
+            print(f"\n\n==== (4) Saving video to vector store: {video_filename}")
+            index = save_video_in_vector_store(video_filename)
+            # index = save_video_in_vector_store(video_filename, transcription)
+
+            # Get videos for a given query
+            # query_string = meeting_name
+            query_string = "action items"
+            print(f"\n\n==== (5) Retrieving related videos for: {query_string} ...")
+            get_related_videos(index, query_string)
+            #print(related_video_filenames)
+        except Exception as e:
+            print(f"Error during video save/retrieve: {str(e)}")
     except FileNotFoundError as e:
         print(f"File error: {str(e)}", file=sys.stderr)
         sys.exit(1)

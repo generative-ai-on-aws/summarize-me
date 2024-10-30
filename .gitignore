@@ -1,6 +1,8 @@
 # Project files
 .DS_Store
 test/
+opensearch/
+OLD*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,5 +1,4 @@
 import boto3
-import json
 import os
 
 def summarize_meeting(transcription):
@@ -55,7 +54,7 @@ def summarize_meeting(transcription):
     key_points = make_api_call(key_points_prompt)
     action_items = make_api_call(action_items_prompt)
 
-#    print("Key Points:\n", key_points)
-#    print("Action Items:\n", action_items)
+    # print("Key Points:\n", key_points)
+    # print("Action Items:\n", action_items)
 
     return key_points, action_items
